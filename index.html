@@ -1,114 +1,64 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мессенджер</title>
+    <title>Chat App</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            width: 90%;
-            max-width: 500px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        .header {
-            background-color: #007bff;
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-        .messages {
+        .chat-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #1a202c;
             padding: 20px;
-            height: 300px;
-            overflow-y: scroll;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .message {
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 10px;
-            background: #f1f1f1;
+            animation: fadeIn 1s;
         }
-        .message.user {
-            background: #d1ffd1;
-            text-align: right;
-        }
-        .footer {
-            display: flex;
-            padding: 10px;
-            background: #efefef;
-        }
-        .footer input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .footer button {
-            padding: 10px;
-            border: none;
-            background: #007bff;
-            color: white;
-            margin-left: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .footer button:hover {
-            background: #0056b3;
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Мессенджер</h1>
+<body class="bg-gray-800">
+    <div class="chat-container">
+        <h1 class="text-4xl text-white mb-4">Chat Room</h1>
+        <div id="messages" class="space-y-4">
+            <!-- Messages will go here -->
         </div>
-        <div class="messages" id="messageContainer"></div>
-        <div class="footer">
-            <input type="text" id="messageInput" placeholder="Введите сообщение...">
-            <button onclick="sendMessage()">Отправить</button>
-        </div>
+        <input type="text" id="message-input" class="w-full p-2 mt-4 rounded" placeholder="Type a message..." />
+        <button id="send-btn" class="w-full p-2 mt-2 bg-blue-500 text-white rounded">Send</button>
     </div>
+
+    <!-- Include Socket.IO client -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+
     <script>
-        const ws = new WebSocket('ws://localhost:8080');
+        const socket = io('http://localhost:5000');  // Подключаемся к серверу на localhost:5000
+        
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-btn');
 
-        ws.onmessage = (event) => {
-            const messageContainer = document.getElementById('messageContainer');
+        socket.on('message', (message) => {
             const messageElement = document.createElement('div');
-            messageElement.className = 'message';
-            messageElement.textContent = event.data;
+            messageElement.classList.add('message');
+            messageElement.classList.add('text-white');
+            messageElement.textContent = message;
+            messagesContainer.appendChild(messageElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;  // Auto-scroll to bottom
+        });
 
-            messageContainer.appendChild(messageElement);
-            messageContainer.scrollTop = messageContainer.scrollHeight;
-        };
-
-        function sendMessage() {
-            const messageInput = document.getElementById('messageInput');
-            const messageText = messageInput.value;
-
-            if (messageText.trim() !== '') {
-                const messageContainer = document.getElementById('messageContainer');
-                const messageElement = document.createElement('div');
-                messageElement.className = 'message user';
-                messageElement.textContent = messageText;
-
-                messageContainer.appendChild(messageElement);
-                ws.send(messageText);
-
-                messageInput.value = '';
+        sendButton.addEventListener('click', () => {
+            const message = messageInput.value;
+            if (message) {
+                socket.emit('message', message);  // Отправляем сообщение на сервер
+                messageInput.value = '';  // Очищаем поле ввода
             }
-        }
+        });
     </script>
 </body>
 </html>
