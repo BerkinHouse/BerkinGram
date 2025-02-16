@@ -1,64 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
-    <style>
-        .chat-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #1a202c;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .message {
-            animation: fadeIn 1s;
-        }
-        @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
-    </style>
+    <title>Докс Discord От Noobert</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
-<body class="bg-gray-800">
-    <div class="chat-container">
-        <h1 class="text-4xl text-white mb-4">Chat Room</h1>
-        <div id="messages" class="space-y-4">
-            <!-- Messages will go here -->
-        </div>
-        <input type="text" id="message-input" class="w-full p-2 mt-4 rounded" placeholder="Type a message..." />
-        <button id="send-btn" class="w-full p-2 mt-2 bg-blue-500 text-white rounded">Send</button>
+<body class="bg-gray-900 text-white flex justify-center items-center h-screen">
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg text-center w-96">
+        <h1 class="text-2xl font-bold mb-4">Найти пользователя Discord</h1>
+        <input id="discordId" type="text" placeholder="Введите Discord ID" class="w-full p-2 rounded text-black" />
+        <button onclick="fetchUserData()" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 p-2 rounded">Искать</button>
+        <div id="result" class="mt-4"></div>
     </div>
-
-    <!-- Include Socket.IO client -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
-
+    
     <script>
-        const socket = io('http://localhost:5000');  // Подключаемся к серверу на localhost:5000
-        
-        const messagesContainer = document.getElementById('messages');
-        const messageInput = document.getElementById('message-input');
-        const sendButton = document.getElementById('send-btn');
-
-        socket.on('message', (message) => {
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message');
-            messageElement.classList.add('text-white');
-            messageElement.textContent = message;
-            messagesContainer.appendChild(messageElement);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;  // Auto-scroll to bottom
-        });
-
-        sendButton.addEventListener('click', () => {
-            const message = messageInput.value;
-            if (message) {
-                socket.emit('message', message);  // Отправляем сообщение на сервер
-                messageInput.value = '';  // Очищаем поле ввода
+        async function fetchUserData() {
+            const id = document.getElementById('discordId').value;
+            if (!id) return alert("Введите Discord ID!");
+            
+            document.getElementById('result').innerHTML = "Поиск...";
+            
+            try {
+                const response = await axios.get(`/lookup?id=${id}`);
+                const data = response.data;
+                
+                document.getElementById('result').innerHTML = `
+                    <p><strong>Никнейм:</strong> ${data.username}</p>
+                    <p><strong>Регион:</strong> ${data.region}</p>
+                    <p><strong>Время:</strong> ${data.time}</p>
+                    <p><strong>Местоположение:</strong> ${data.location}</p>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = "Ошибка при поиске!";
             }
-        });
+        }
     </script>
 </body>
 </html>
