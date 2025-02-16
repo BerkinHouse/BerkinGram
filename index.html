@@ -3,37 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Докс Discord От Noobert</title>
+    <title>Профиль Roblox</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
-<body class="bg-gray-900 text-white flex justify-center items-center h-screen">
-    <div class="bg-gray-800 p-6 rounded-lg shadow-lg text-center w-96">
-        <h1 class="text-2xl font-bold mb-4">Найти пользователя Discord</h1>
-        <input id="discordId" type="text" placeholder="Введите Discord ID" class="w-full p-2 rounded text-black" />
-        <button onclick="fetchUserData()" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 p-2 rounded">Искать</button>
-        <div id="result" class="mt-4"></div>
+<body class="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+    <div class="p-6 bg-gray-800 rounded-xl shadow-xl w-96 text-center">
+        <h1 class="text-2xl font-bold mb-4">Профиль игрока Roblox</h1>
+        <input id="userId" type="number" placeholder="Введите ID игрока" class="w-full p-2 rounded bg-gray-700 text-white">
+        <button onclick="fetchRobloxData()" class="w-full bg-blue-600 hover:bg-blue-700 p-2 mt-3 rounded">Получить данные</button>
+        <div id="profile" class="mt-4 hidden">
+            <img id="avatar" class="w-24 h-24 mx-auto rounded-full mb-2">
+            <p><strong>Ник:</strong> <span id="username"></span></p>
+            <p><strong>Активность:</strong> <span id="status"></span></p>
+            <p><strong>Цена скина:</strong> <span id="skinPrice"></span> Robux</p>
+        </div>
     </div>
-    
+
     <script>
-        async function fetchUserData() {
-            const id = document.getElementById('discordId').value;
-            if (!id) return alert("Введите Discord ID!");
-            
-            document.getElementById('result').innerHTML = "Поиск...";
-            
+        async function fetchRobloxData() {
+            const userId = document.getElementById('userId').value;
+            if (!userId) return alert('Введите ID игрока!');
+
             try {
-                const response = await axios.get(`/lookup?id=${id}`);
-                const data = response.data;
+                const userData = await fetch(`https://users.roblox.com/v1/users/${userId}`).then(res => res.json());
+                const avatarData = await fetch(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${userId}&size=150x150&format=Png`).then(res => res.json());
+                const economyData = await fetch(`https://economy.roblox.com/v1/assets/${userId}/resale-data`).then(res => res.json());
                 
-                document.getElementById('result').innerHTML = `
-                    <p><strong>Никнейм:</strong> ${data.username}</p>
-                    <p><strong>Регион:</strong> ${data.region}</p>
-                    <p><strong>Время:</strong> ${data.time}</p>
-                    <p><strong>Местоположение:</strong> ${data.location}</p>
-                `;
+                document.getElementById('username').textContent = userData.name || 'Не найден';
+                document.getElementById('status').textContent = userData.description || 'Нет данных';
+                document.getElementById('avatar').src = avatarData.data[0]?.imageUrl || '';
+                document.getElementById('skinPrice').textContent = economyData.recentAveragePrice || 'Неизвестно';
+                
+                document.getElementById('profile').classList.remove('hidden');
             } catch (error) {
-                document.getElementById('result').innerHTML = "Ошибка при поиске!";
+                alert('Ошибка при получении данных. Проверьте ID.');
+                console.error(error);
             }
         }
     </script>
