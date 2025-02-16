@@ -15,7 +15,6 @@
             <img id="avatar" class="w-24 h-24 mx-auto rounded-full mb-2">
             <p><strong>Ник:</strong> <span id="username"></span></p>
             <p><strong>Активность:</strong> <span id="status"></span></p>
-            <p><strong>Цена скина:</strong> <span id="skinPrice"></span> Robux</p>
         </div>
     </div>
 
@@ -26,17 +25,17 @@
 
             try {
                 const userData = await fetch(`https://users.roblox.com/v1/users/${userId}`).then(res => res.json());
-                const avatarData = await fetch(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${userId}&size=150x150&format=Png`).then(res => res.json());
-                const economyData = await fetch(`https://economy.roblox.com/v1/assets/${userId}/resale-data`).then(res => res.json());
+                if (!userData.name) throw new Error('Игрок не найден');
+                
+                const avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=150&height=150&format=png`;
                 
                 document.getElementById('username').textContent = userData.name || 'Не найден';
                 document.getElementById('status').textContent = userData.description || 'Нет данных';
-                document.getElementById('avatar').src = avatarData.data[0]?.imageUrl || '';
-                document.getElementById('skinPrice').textContent = economyData.recentAveragePrice || 'Неизвестно';
+                document.getElementById('avatar').src = avatarUrl;
                 
                 document.getElementById('profile').classList.remove('hidden');
             } catch (error) {
-                alert('Ошибка при получении данных. Проверьте ID.');
+                alert('Ошибка: Игрок не найден. Проверьте ID.');
                 console.error(error);
             }
         }
